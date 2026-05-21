@@ -647,6 +647,14 @@
           <svg style="color: var(--color-success);" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
           Console Control Deck
         </h2>
+
+        <div class="input-group" style="margin-bottom: 0.25rem;">
+          <label class="input-label" for="selWorkflow">Select Target Perplexity Workflow:</label>
+          <select class="input-field" id="selWorkflow" style="width: 100%;">
+            <option value="Weekly Staff Meeting">Weekly Staff Meeting</option>
+            <option value="1:1 Sync Meeting">1:1 Sync Meeting</option>
+          </select>
+        </div>
         
         <div class="status-panel">
           <div>
@@ -883,8 +891,11 @@
       const facilitator = document.getElementById("inpFacilitator").value.trim() || "[Dr. Jane Smith / Dean of Academics]";
       const format = document.getElementById("inpFormat").value;
       const rawText = document.getElementById("rawFeed").value.trim() || "... awaiting transcribe content stream ...";
+      const workflow = document.getElementById("selWorkflow").value;
 
-      const promptTemplate = `You are a text-cleaning assistant for a weekly Higher Education Staff Meeting. Your only job is to take the live raw transcript or dictation text below and normalize it for a custom AI space.
+      const prefix = workflow === "1:1 Sync Meeting" ? "/one_on_one\n\n" : "/meeting_minutes\n\n";
+
+      const promptTemplate = prefix + `You are a text-cleaning assistant for a weekly Higher Education Staff Meeting. Your only job is to take the live raw transcript or dictation text below and normalize it for a custom AI space.
 
 Rules:
 1. Clean up spoken filler words (uh, um, like), false starts, and obvious speech-to-text typos.
@@ -1080,11 +1091,12 @@ Raw Text to Clean:
     document.getElementById("btnStop").addEventListener("click", stopCapture);
 
     // Watch metadata configuration field triggers
-    const triggerFields = ["inpTitle", "inpDepartment", "inpDate", "inpFacilitator", "inpFormat", "rawFeed"];
+    const triggerFields = ["inpTitle", "inpDepartment", "inpDate", "inpFacilitator", "inpFormat", "rawFeed", "selWorkflow"];
     triggerFields.forEach(id => {
-      document.getElementById(id).addEventListener("input", updatePayload);
-      if (id === "inpFormat") {
-        document.getElementById(id).addEventListener("change", updatePayload);
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener("input", updatePayload);
+        el.addEventListener("change", updatePayload);
       }
     });
 
