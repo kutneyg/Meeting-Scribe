@@ -612,12 +612,12 @@
           
           <div class="input-group">
             <label class="input-label" for="inpTitle">Meeting Title / Topic</label>
-            <input class="input-field" type="text" id="inpTitle" placeholder="e.g., Project Alpha Update">
+            <input class="input-field" type="text" id="inpTitle" placeholder="e.g., Weekly Staff Meeting">
           </div>
 
           <div class="input-group">
             <label class="input-label" for="inpDepartment">Department / Group</label>
-            <input class="input-field" type="text" id="inpDepartment" placeholder="e.g., Operations Board">
+            <input class="input-field" type="text" id="inpDepartment" placeholder="e.g., Academic Affairs">
           </div>
 
           <div class="input-group">
@@ -627,7 +627,7 @@
 
           <div class="input-group">
             <label class="input-label" for="inpFacilitator">Chair / Facilitator</label>
-            <input class="input-field" type="text" id="inpFacilitator" placeholder="e.g., Lead Facilitator">
+            <input class="input-field" type="text" id="inpFacilitator" placeholder="e.g., Dr. Jane Smith">
           </div>
 
           <div class="input-group" style="grid-column: span 2;">
@@ -718,17 +718,16 @@
         </div>
       </section>
 
-      <!-- Right Column Panel: Structured AI Ingestion Payload -->
+      <!-- Right Column Panel: Cleaned Perplexity Payload -->
       <section class="card" aria-label="Structured prompt output for AI ingestion">
         <div class="panel-header">
           <h2 class="panel-title" style="border: none; padding: 0;">
             <svg style="color: #6366f1;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-            Structured AI Ingestion Payload
-            <span class="status-capsule prompt">Prompt Box</span>
+            Cleaned Perplexity Payload (Click to Copy)
           </h2>
           <button class="panel-action-btn" id="btnCopyPayload" style="border-color: #6366f1; color: #a5b4fc;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-            <span id="txtCopyPayload">Copy Ingestion Payload</span>
+            <span id="txtCopyPayload">Copy Perplexity Payload</span>
           </button>
         </div>
         
@@ -744,7 +743,7 @@
       <h3>Operational Strategy Guide</h3>
       <ul>
         <li><strong>Continuous Capture:</strong> The application monitors sound signals sequentially. Breaks or quiet pauses of any size will not lose your session state, thanks to the integrated self-healing reconnect engine.</li>
-        <li><strong>Input Freedom:</strong> Type, overwrite, or adjust the live transcript feed container instantly with your keyboard; the Structured prompt panel recreates the final prompt template on every keypress.</li>
+        <li><strong>Input Freedom:</strong> Type or dictate your updates, click 'Copy Perplexity Payload', and paste directly into your custom Perplexity Space using the /meeting_minutes command.</li>
         <li><strong>Secure Sandbox:</strong> Microphone data is processed entirely client-side using browser-supported Web Speech APIs. No audio streams are recorded, logs tracked, or remote telemetry dispatched.</li>
       </ul>
     </section>
@@ -878,31 +877,29 @@
 
     // Dynamic prompt pay loader creation
     function updatePayload() {
-      const title = document.getElementById("inpTitle").value.trim() || "[Project Alpha Update / Operations Board Placeholder]";
-      const dept = document.getElementById("inpDepartment").value.trim() || "[Operations Board Placeholder]";
+      const title = document.getElementById("inpTitle").value.trim() || "[Weekly Higher Education Staff Meeting]";
+      const dept = document.getElementById("inpDepartment").value.trim() || "[Academic Affairs]";
       const date = document.getElementById("inpDate").value.trim() || "2026-05-21";
-      const facilitator = document.getElementById("inpFacilitator").value.trim() || "[Operations Lead / Coordinator]";
+      const facilitator = document.getElementById("inpFacilitator").value.trim() || "[Dr. Jane Smith / Dean of Academics]";
       const format = document.getElementById("inpFormat").value;
       const rawText = document.getElementById("rawFeed").value.trim() || "... awaiting transcribe content stream ...";
 
-      const promptTemplate = `/meeting_minutes
+      const promptTemplate = `You are a text-cleaning assistant for a weekly Higher Education Staff Meeting. Your only job is to take the live raw transcript or dictation text below and normalize it for a custom AI space.
 
-Generate professional meeting minutes and action items based on the incoming session data. 
+Rules:
+1. Clean up spoken filler words (uh, um, like), false starts, and obvious speech-to-text typos.
+2. Maintain all names, numbers, metrics, and specific task assignments exactly as spoken.
+3. DO NOT format the text into formal minutes, tables, or markdown headers. Do not add metadata labels. 
+4. Output the result as clean, sequential paragraphs or simple lists that represent a direct, readable account of the meeting updates.
 
-[METADATA PARAMS]
-- Meeting Title: ${title}
+[Session Metadata Context References]
+- Scheduled Meeting Title/Topic: ${title}
 - Department/Group: ${dept}
 - Date: ${date}
-- Facilitator: ${facilitator}
-- Format Context: ${format}
+- Facilitator/Chair: ${facilitator}
+- Style/Format: ${format}
 
-[PROMPT PROCESSING DIRECTIVES]
-1. STRUCTURE & TONAL GUARDRAILS: Clean up all grammatical redundancies, verbal stubs, and conversational fillers. Convert raw spoken text into objective, professional, and clear executive-grade corporate/academic prose. 
-2. INTERACTIVE DIALOGUE HANDLING: If Format Context is "Live Interactive Meeting", note that the raw feed contains co-mingled speech from multiple participants. Logically segment topics, agreements, and statements based on contextual patterns.
-3. SOLE DICTATION HANDLING: If Format Context is "Post-Meeting Dictation Summary", treat the text as a singular comprehensive recap delivered from the facilitator's perspective.
-4. COMPLIANCE & OUTPUT FILTERING: Respond ONLY with the final structured meeting minutes, key discussion highlights, and an extracted bulleted list of Action Items (assigning ownership to roles/names where contextually stated). Do not include any introductory text, markdown code blocks, or conversational AI filler.
-
-[RAW MIC DATA FEED STREAM]
+Raw Text to Clean:
 "${rawText}"`;
 
       document.getElementById("promptPayload").value = promptTemplate;
@@ -1065,10 +1062,10 @@ Generate professional meeting minutes and action items based on the incoming ses
 
         navigator.clipboard.writeText(payloadArea.value).then(() => {
           copyPayloadBtn.classList.add("btn-copied");
-          oldLabel.textContent = "Copied Ingestion Payload!";
+          oldLabel.textContent = "Copied Perplexity Payload!";
           setTimeout(() => {
             copyPayloadBtn.classList.remove("btn-copied");
-            oldLabel.textContent = "Copy Ingestion Payload";
+            oldLabel.textContent = "Copy Perplexity Payload";
           }, 2000);
         }).catch(err => {
           console.error("Failed to copy prompt payload:", err);
