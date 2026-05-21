@@ -380,7 +380,7 @@
       margin-top: 0.15rem;
     }
 
-    /* Twin Panels grid layout */
+    /* Multi Panel grid layout */
     .workspace-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -391,6 +391,19 @@
       .workspace-grid {
         grid-template-columns: repeat(2, 1fr);
       }
+    }
+
+    @media (min-width: 1200px) {
+      .workspace-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .animate-spin {
+      animation: spin 1s linear infinite;
     }
 
     .panel-header {
@@ -696,7 +709,7 @@
 
     </div>
 
-    <!-- Dual Panel Workspace Matrix -->
+    <!-- Multi-Panel Workspace Matrix -->
     <main class="workspace-grid">
       
       <!-- Left Column Panel: Live Raw Feed -->
@@ -718,7 +731,7 @@
         </div>
       </section>
 
-      <!-- Right Column Panel: Structured AI Ingestion Payload -->
+      <!-- Center Column Panel: Structured AI Ingestion Payload -->
       <section class="card" aria-label="Structured prompt output for AI ingestion">
         <div class="panel-header">
           <h2 class="panel-title" style="border: none; padding: 0;">
@@ -726,7 +739,7 @@
             Structured AI Ingestion Payload
             <span class="status-capsule prompt">Prompt Box</span>
           </h2>
-          <button class="panel-action-btn" id="btnCopyPayload" style="border-color: #6366f1; color: #4338ca;">
+          <button class="panel-action-btn" id="btnCopyPayload" style="border-color: #6366f1; color: #a5b4fc;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
             <span id="txtCopyPayload">Copy Ingestion Payload</span>
           </button>
@@ -734,6 +747,31 @@
         
         <div class="feed-container">
           <textarea class="payload-text-area" id="promptPayload" readonly placeholder="Waiting for live feed input block to format..."></textarea>
+        </div>
+      </section>
+
+      <!-- Right Column Panel: AI Processed Consolidated Narrative -->
+      <section class="card" aria-label="AI Processed Narrative Output">
+        <div class="panel-header">
+          <h2 class="panel-title" style="border: none; padding: 0;">
+            <svg style="color: var(--color-success);" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+            AI Processed Consolidated Narrative
+            <span class="status-capsule stream" style="background-color: var(--color-success-light); color: var(--color-success);">Scribe AI</span>
+          </h2>
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="panel-action-btn" id="btnProcessAI" style="border-color: var(--color-primary); color: #a5b4fc;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275Z"/></svg>
+              <span>Process with AI</span>
+            </button>
+            <button class="panel-action-btn" id="btnCopyNarrative" style="border-color: var(--color-border); color: var(--color-text-secondary);" disabled>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+              <span id="txtCopyNarrative">Copy Narrative</span>
+            </button>
+          </div>
+        </div>
+        
+        <div class="feed-container">
+          <textarea class="payload-text-area" id="narrativeOutput" style="font-family: var(--font-sans); font-size: 0.9rem;" readonly placeholder="Capture or modify your raw text, then click 'Process with AI' to trigger the backend Scribe AI engine and generate the narrative payload dynamically..."></textarea>
         </div>
       </section>
 
@@ -1042,6 +1080,7 @@ Generate professional meeting minutes and action items based on the incoming ses
     function setupClipboardControls() {
       const copyRawBtn = document.getElementById("btnCopyRaw");
       const copyPayloadBtn = document.getElementById("btnCopyPayload");
+      const copyNarrativeBtn = document.getElementById("btnCopyNarrative");
 
       copyRawBtn.addEventListener("click", () => {
         const rawArea = document.getElementById("rawFeed");
@@ -1074,6 +1113,78 @@ Generate professional meeting minutes and action items based on the incoming ses
           console.error("Failed to copy prompt payload:", err);
         });
       });
+
+      copyNarrativeBtn.addEventListener("click", () => {
+        const narrativeArea = document.getElementById("narrativeOutput");
+        const oldLabel = document.getElementById("txtCopyNarrative");
+
+        navigator.clipboard.writeText(narrativeArea.value).then(() => {
+          copyNarrativeBtn.classList.add("btn-copied");
+          oldLabel.textContent = "Copied Narrative!";
+          setTimeout(() => {
+            copyNarrativeBtn.classList.remove("btn-copied");
+            oldLabel.textContent = "Copy Narrative";
+          }, 2000);
+        }).catch(err => {
+          console.error("Failed to copy narrative payload:", err);
+        });
+      });
+    }
+
+    // Active full-stack processing engine trigger
+    async function processTranscript() {
+      const btn = document.getElementById("btnProcessAI");
+      const output = document.getElementById("narrativeOutput");
+      const copyBtn = document.getElementById("btnCopyNarrative");
+      const rawText = document.getElementById("rawFeed").value.trim();
+      
+      if (!rawText) {
+        showNoticeBanner("Please capture or type some raw feed transcript before processing.", "warning");
+        return;
+      }
+
+      // Transition elements to processing pending state
+      btn.disabled = true;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = `<svg class="animate-spin" style="margin-right: 4px;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-width="2.5" stroke-dasharray="32" stroke-dashoffset="16" stroke="rgba(255, 255, 255, 0.2)"/><path d="M12 2v4" stroke-width="2.5"/></svg> Processing...`;
+      output.value = "Scribe AI is actively processing the mic feed...\n- Correcting minor errors and filler speech\n- Parsing co-mingled dialogue and speaker contributions\n- Structuring clean narrative payload block\n\nPlease wait a moment...";
+      copyBtn.disabled = true;
+
+      try {
+        const payload = {
+          transcript: rawText,
+          title: document.getElementById("inpTitle").value.trim(),
+          department: document.getElementById("inpDepartment").value.trim(),
+          date: document.getElementById("inpDate").value.trim(),
+          facilitator: document.getElementById("inpFacilitator").value.trim(),
+          format: document.getElementById("inpFormat").value
+        };
+
+        const response = await fetch("/api/process", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to process raw transcripts.");
+        }
+
+        output.value = data.result;
+        copyBtn.disabled = false;
+        
+      } catch (err) {
+        console.error("AI Scribe logic processing exception:", err);
+        output.value = `Logic Connection Failure: ${err.message || "Could not successfully stream with Scribe Engine."}`;
+        showNoticeBanner(`Scribe Engine Communication Failure: ${err.message}`, "error");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
     }
 
     // Event listeners
@@ -1081,6 +1192,7 @@ Generate professional meeting minutes and action items based on the incoming ses
     document.getElementById("btnPause").addEventListener("click", pauseSession);
     document.getElementById("btnResume").addEventListener("click", resumeSession);
     document.getElementById("btnStop").addEventListener("click", stopCapture);
+    document.getElementById("btnProcessAI").addEventListener("click", processTranscript);
 
     // Watch metadata configuration field triggers
     const triggerFields = ["inpTitle", "inpDepartment", "inpDate", "inpFacilitator", "inpFormat", "rawFeed"];
