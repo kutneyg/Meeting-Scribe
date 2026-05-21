@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Meeting Scribe App</title>
+  
+  <!-- Inter & JetBrains Mono Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* Styling tokens - Elegant Dark Theme */
+    :root {
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      
+      --color-bg: #09090b;        /* zinc-950 block background */
+      --color-card: #121214;      /* elite slate-900 hybrid */
+      --color-border: #1e1e24;    /* thin boundary line scale */
+      --color-input-border: #2c2c35; /* dark status border */
+      
+      --color-text-primary: #f4f4f5;   /* crisp white text */
+      --color-text-secondary: #a1a1aa; /* silver information */
+      --color-text-muted: #71717a;    /* slate-500 neutral */
+      
+      --color-primary: #6366f1;       /* Premium Indigo-500 accent colors */
+      --color-primary-hover: #4f46e5; /* Indigo-600 */
+      --color-primary-light: rgba(99, 102, 241, 0.15);
+      
+      --color-success: #10b981;       /* emerald-500 */
+      --color-success-hover: #059669;
+      --color-success-light: rgba(16, 185, 129, 0.1);
+      
+      --color-warning: #f59e0b;       /* amber-500 */
+      --color-warning-hover: #d97706;
+      --color-warning-light: rgba(245, 158, 11, 0.1);
+      
+      --color-danger: #f43f5e;        /* rose-500 */
+      --color-danger-hover: #e11d48;
+      --color-danger-light: rgba(244, 63, 94, 0.1);
+      
+      --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.6);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.6), 0 2px 4px -2px rgba(0, 0, 0, 0.6);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.7), 0 4px 6px -4px rgba(0, 0, 0, 0.7);
+      
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      
+      --transition-all: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Core Layout resets */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--color-bg);
+      color: var(--color-text-primary);
+      line-height: 1.5;
+      padding: 2.5rem 1.5rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Max constraint wrapper for fluid large screens */
+    .app-container {
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    /* Elegant Simple Header */
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--color-border);
+      padding-bottom: 1.5rem;
+    }
+
+    header h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      color: #ffffff;
+    }
+
+    header p {
+      font-size: 1rem;
+      color: var(--color-text-secondary);
+      max-width: 700px;
+    }
+
+    /* Info card grid */
+    .row-meta-controls {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (min-width: 1024px) {
+      .row-meta-controls {
+        grid-template-columns: 2fr 1fr;
+      }
+    }
+
+    /* Card styling */
+    .card {
+      background-color: var(--color-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .card h2 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--color-border);
+      padding-bottom: 0.75rem;
+    }
+
+    /* Metadata setup grid */
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (min-width: 640px) {
+      .meta-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 768px) {
+      .meta-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .meta-grid-full {
+        grid-column: span 3;
+      }
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .input-label {
+      font-size: 0.825rem;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .input-field {
+      font-family: inherit;
+      font-size: 0.95rem;
+      padding: 0.625rem 0.875rem;
+      background-color: var(--color-bg);
+      border: 1px solid var(--color-input-border);
+      border-radius: var(--radius-sm);
+      color: var(--color-text-primary);
+      outline: none;
+      transition: var(--transition-all);
+    }
+
+    .input-field::placeholder {
+      color: var(--color-text-muted);
+    }
+
+    .input-field:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+    }
+
+    /* Adjust dropdown option color lists for OS compatibility query */
+    .input-field option {
+      background-color: var(--color-card);
+      color: var(--color-text-primary);
+    }
+
+    /* Status indicator */
+    .status-panel {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+    }
+
+    .status-display {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background-color: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+    }
+
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: var(--color-danger); /* Rose (idle) default */
+      transition: var(--transition-all);
+    }
+
+    .status-dot.status-idle {
+      background-color: var(--color-danger);
+      box-shadow: 0 0 0 4px rgba(244, 63, 94, 0.35);
+    }
+
+    .status-dot.status-paused {
+      background-color: var(--color-warning);
+      box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.35);
+    }
+
+    .status-dot.status-active {
+      background-color: var(--color-success);
+      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.35);
+    }
+
+    /* Pulsing animation for active indicator */
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+      }
+    }
+
+    .pulse {
+      animation: pulse 1.8s infinite;
+    }
+
+    .status-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .status-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .status-text {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    /* Control deck buttons alignment */
+    .control-deck {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+
+    .btn {
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 0.75rem 1rem;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: var(--transition-all);
+    }
+
+    .btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      background-color: #1e1e24 !important;
+      color: #52525b !important;
+      border-color: #27272a !important;
+    }
+
+    /* Start Button Class */
+    .btn-start {
+      background-color: var(--color-success);
+      color: #ffffff;
+    }
+    .btn-start:hover:not(:disabled) {
+      background-color: var(--color-success-hover);
+    }
+
+    /* Pause Button Class */
+    .btn-pause {
+      background-color: var(--color-warning);
+      color: #ffffff;
+    }
+    .btn-pause:hover:not(:disabled) {
+      background-color: var(--color-warning-hover);
+    }
+
+    /* Resume Button Class */
+    .btn-resume {
+      background-color: var(--color-primary);
+      color: #ffffff;
+    }
+    .btn-resume:hover:not(:disabled) {
+      background-color: var(--color-primary-hover);
+    }
+
+    /* Stop Button Class */
+    .btn-stop {
+      background-color: var(--color-danger);
+      color: #ffffff;
+    }
+    .btn-stop:hover:not(:disabled) {
+      background-color: var(--color-danger-hover);
+    }
+
+    /* Browser compatibility indicator banner */
+    .alert-banner {
+      display: none;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 1rem 1.25rem;
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+    }
+
+    .alert-banner.info {
+      background-color: var(--color-primary-light);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      color: #c7d2fe;
+      display: flex;
+    }
+
+    .alert-banner.warning {
+      background-color: var(--color-warning-light);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      color: #fde047;
+      display: flex;
+    }
+
+    .alert-banner.error {
+      background-color: var(--color-danger-light);
+      border: 1px solid rgba(244, 63, 94, 0.2);
+      color: #fecdd3;
+      display: flex;
+    }
+
+    .alert-banner svg {
+      flex-shrink: 0;
+      margin-top: 0.15rem;
+    }
+
+    /* Twin Panels grid layout */
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (min-width: 900px) {
+      .workspace-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .panel-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .panel-action-btn {
+      font-family: inherit;
+      font-size: 0.775rem;
+      font-weight: 600;
+      padding: 0.45rem 0.85rem;
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--color-border);
+      color: var(--color-text-secondary);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: var(--transition-all);
+    }
+
+    .panel-action-btn:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-color: var(--color-input-border);
+      color: #ffffff;
+    }
+
+    .panel-action-btn.btn-copied {
+      background-color: var(--color-success-light);
+      color: var(--color-success);
+      border-color: var(--color-success);
+    }
+
+    /* Content stream display textareas */
+    .feed-container {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    .feed-text-area {
+      width: 100%;
+      height: 480px;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      padding: 1.25rem;
+      background-color: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      color: var(--color-text-primary);
+      resize: none;
+      outline: none;
+      box-shadow: v-shadow-sm;
+      transition: var(--transition-all);
+    }
+
+    .feed-text-area:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+
+    .payload-text-area {
+      width: 100%;
+      height: 480px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      line-height: 1.5;
+      padding: 1.25rem;
+      background-color: #030303; /* Deep pure pitch black block code view */
+      color: #cbd5e1;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      resize: none;
+      outline: none;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition-all);
+    }
+
+    .payload-text-area:focus {
+      border-color: var(--color-primary);
+    }
+
+    /* Dynamic UI micro-details */
+    .status-capsule {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.2rem 0.5rem;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-left: 0.25rem;
+    }
+
+    .status-capsule.stream {
+      background-color: var(--color-primary-light);
+      color: #a5b4fc;
+    }
+
+    .status-capsule.prompt {
+      background-color: var(--color-border);
+      color: var(--color-text-secondary);
+    }
+
+    .audio-listening-vibe {
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 14px;
+    }
+
+    .vibe-bar {
+      width: 3px;
+      height: 3px;
+      background-color: var(--color-success);
+      border-radius: 9999px;
+      transition: height 0.15s ease-in-out;
+    }
+
+    /* Pulse animation classes for vibe-bars during live recording */
+    .pulse-bar-1 { animation: b-pulse-1 0.6s infinite ease-in-out alternate; }
+    .pulse-bar-2 { animation: b-pulse-2 0.8s infinite ease-in-out alternate 0.1s; }
+    .pulse-bar-3 { animation: b-pulse-3 0.7s infinite ease-in-out alternate 0.2s; }
+    .pulse-bar-4 { animation: b-pulse-4 0.9s infinite ease-in-out alternate 0.05s; }
+    .pulse-bar-5 { animation: b-pulse-1 0.7s infinite ease-in-out alternate 0.15s; }
+
+    @keyframes b-pulse-1 { 100% { height: 14px; } }
+    @keyframes b-pulse-2 { 100% { height: 12px; } }
+    @keyframes b-pulse-3 { 100% { height: 15px; } }
+    @keyframes b-pulse-4 { 100% { height: 10px; } }
+
+    /* Instructions card */
+    .instructions-info {
+      background-color: var(--color-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .instructions-info h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .instructions-info ul {
+      list-style-type: disc;
+      padding-left: 1.25rem;
+      font-size: 0.825rem;
+      color: var(--color-text-secondary);
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    footer {
+      margin-top: 3rem;
+      text-align: center;
+      font-size: 0.775rem;
+      color: var(--color-text-muted);
+      border-top: 1px solid var(--color-border);
+      padding-top: 1.5rem;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container" id="appRoot">
+    
+    <!-- Title and Purpose -->
+    <header>
+      <h1>The Meeting Scribe App</h1>
+      <p>A smart, browser-native meeting transcription utility. Securely captures microphone audio streams and generates formatted, objective prompts context-tailored for advanced AI models.</p>
+    </header>
+
+    <!-- Browser Incompatibility Banner fallback -->
+    <div id="unsupportedAlert" class="alert-banner warning">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <div>
+        <strong>Browser notice:</strong> The browser-native Web Speech API is not natively supported or enabled in this context. For best continuous transcription performance, please open this app in <strong>Google Chrome</strong> or <strong>Microsoft Edge</strong>.
+      </div>
+    </div>
+
+    <!-- Active Error / Warning Banner -->
+    <div id="errorAlert" class="alert-banner error" style="display: none;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      <div id="errorText">An error occurred during microphone stream processing.</div>
+    </div>
+
+    <div class="row-meta-controls">
+      
+      <!-- Metadata Grid Setup Panel -->
+      <section class="card" aria-label="Meeting Metadata Input Form">
+        <h2>
+          <svg style="color: var(--color-primary);" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+          Session Metadata Configuration
+        </h2>
+        
+        <div class="meta-grid">
+          
+          <div class="input-group">
+            <label class="input-label" for="inpTitle">Meeting Title / Topic</label>
+            <input class="input-field" type="text" id="inpTitle" placeholder="e.g., Project Alpha Update">
+          </div>
+
+          <div class="input-group">
+            <label class="input-label" for="inpDepartment">Department / Group</label>
+            <input class="input-field" type="text" id="inpDepartment" placeholder="e.g., Operations Board">
+          </div>
+
+          <div class="input-group">
+            <label class="input-label" for="inpDate">Meeting Date</label>
+            <input class="input-field" type="date" id="inpDate">
+          </div>
+
+          <div class="input-group">
+            <label class="input-label" for="inpFacilitator">Chair / Facilitator</label>
+            <input class="input-field" type="text" id="inpFacilitator" placeholder="e.g., Lead Facilitator">
+          </div>
+
+          <div class="input-group" style="grid-column: span 2;">
+            <label class="input-label" for="inpFormat">Meeting Format Context</label>
+            <select class="input-field" id="inpFormat">
+              <option value="Live Interactive Meeting">Live Interactive Meeting (Multiple Co-mingled Speakers)</option>
+              <option value="Post-Meeting Dictation Summary">Post-Meeting Dictation Summary (Single Speaker Recount)</option>
+            </select>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Controlling & Visual Indicator Desk -->
+      <section class="card" aria-label="Recording controls and system state">
+        <h2>
+          <svg style="color: var(--color-success);" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+          Console Control Deck
+        </h2>
+        
+        <div class="status-panel">
+          <div>
+            <div class="status-display">
+              <div class="status-dot status-idle" id="statusDot"></div>
+              <div class="status-meta">
+                <div class="status-label">Engine Status</div>
+                <div class="status-text" id="statusText">Idle / Offline</div>
+              </div>
+            </div>
+            
+            <div class="audio-listening-vibe" id="vibeContainer" style="opacity: 0;">
+              <div class="vibe-bar vibe-bar-1"></div>
+              <div class="vibe-bar vibe-bar-2"></div>
+              <div class="vibe-bar vibe-bar-3"></div>
+              <div class="vibe-bar vibe-bar-4"></div>
+              <div class="vibe-bar vibe-bar-5"></div>
+              <div class="vibe-bar vibe-bar-2"></div>
+              <div class="vibe-bar vibe-bar-4"></div>
+              <span style="font-size: 0.7rem; color: var(--color-success); font-weight: 500; margin-left: 4px;">Audio Stream Active</span>
+            </div>
+          </div>
+
+          <div class="control-deck">
+            <button class="btn btn-start" id="btnStart" title="Initialize and start continuous capture">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+              Start Capture
+            </button>
+            
+            <button class="btn btn-pause" id="btnPause" disabled title="Temporarily hold current listening stream">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></svg>
+              Pause Stream
+            </button>
+            
+            <button class="btn btn-resume" id="btnResume" disabled title="Resume listening session keeping data">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+              Resume
+            </button>
+            
+            <button class="btn btn-stop" id="btnStop" disabled title="Hard stop capture session">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+              Stop
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Dual Panel Workspace Matrix -->
+    <main class="workspace-grid">
+      
+      <!-- Left Column Panel: Live Raw Feed -->
+      <section class="card" aria-label="Transcription input results">
+        <div class="panel-header">
+          <h2 class="panel-title" style="border: none; padding: 0;">
+            <svg style="color: var(--color-primary);" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            Live Raw Feed 
+            <span class="status-capsule stream">Streaming</span>
+          </h2>
+          <button class="panel-action-btn" id="btnCopyRaw">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            <span id="txtCopyRaw">Copy Raw Stream</span>
+          </button>
+        </div>
+        
+        <div class="feed-container">
+          <textarea class="feed-text-area" id="rawFeed" placeholder="Your live spoken feed transcript will construct here in real-time once you start capture. You can also manually edit or type directly inside this raw view at any stage..."></textarea>
+        </div>
+      </section>
+
+      <!-- Right Column Panel: Structured AI Ingestion Payload -->
+      <section class="card" aria-label="Structured prompt output for AI ingestion">
+        <div class="panel-header">
+          <h2 class="panel-title" style="border: none; padding: 0;">
+            <svg style="color: #6366f1;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            Structured AI Ingestion Payload
+            <span class="status-capsule prompt">Prompt Box</span>
+          </h2>
+          <button class="panel-action-btn" id="btnCopyPayload" style="border-color: #6366f1; color: #4338ca;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            <span id="txtCopyPayload">Copy Ingestion Payload</span>
+          </button>
+        </div>
+        
+        <div class="feed-container">
+          <textarea class="payload-text-area" id="promptPayload" readonly placeholder="Waiting for live feed input block to format..."></textarea>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Additional user operational instruction tips -->
+    <section class="instructions-info" aria-label="Application instructions and flow details">
+      <h3>Operational Strategy Guide</h3>
+      <ul>
+        <li><strong>Continuous Capture:</strong> The application monitors sound signals sequentially. Breaks or quiet pauses of any size will not lose your session state, thanks to the integrated self-healing reconnect engine.</li>
+        <li><strong>Input Freedom:</strong> Type, overwrite, or adjust the live transcript feed container instantly with your keyboard; the Structured prompt panel recreates the final prompt template on every keypress.</li>
+        <li><strong>Secure Sandbox:</strong> Microphone data is processed entirely client-side using browser-supported Web Speech APIs. No audio streams are recorded, logs tracked, or remote telemetry dispatched.</li>
+      </ul>
+    </section>
+
+    <footer>
+      The Meeting Scribe App • Production Grade Independent Ingestion Scribe • Built for safe offline-first meeting summaries
+    </footer>
+
+  </div>
+
+  <script>
+    // Browser Speech Recognition Check
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+    let shouldBeActive = false;
+    let isPaused = false;
+    
+    // Check compatibility on load
+    if (!SpeechRecognition) {
+      document.getElementById('unsupportedAlert').classList.add('error');
+      document.getElementById('unsupportedAlert').classList.remove('warning');
+      document.getElementById('unsupportedAlert').style.display = 'flex';
+      console.warn("SpeechRecognition API is not supported in this browser.");
+    }
+
+    // Default current Date
+    document.addEventListener("DOMContentLoaded", () => {
+      // Set to 2026-05-21 as local time is 2026-05-21
+      document.getElementById('inpDate').value = "2026-05-21";
+      updatePayload();
+    });
+
+    // Initialize the Speech Listener
+    function initSpeechRecognition() {
+      if (!SpeechRecognition) return;
+
+      try {
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        // Capture Result Stream
+        recognition.onresult = (event) => {
+          let chunk = "";
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              chunk += event.results[i][0].transcript + " ";
+            }
+          }
+          if (chunk.trim()) {
+            appendTranscript(chunk.trim());
+          }
+        };
+
+        // Self-Healing Disconnect loop
+        recognition.onend = () => {
+          console.log("Speech Recognition session ended.");
+          if (shouldBeActive && !isPaused) {
+            console.log("State demands capture active. Re-launching self-healing driver...");
+            try {
+              recognition.start();
+            } catch (err) {
+              console.warn("Retrying self-healing restart inside timeout:", err);
+              setTimeout(() => {
+                if (shouldBeActive && !isPaused) {
+                  try { recognition.start(); } catch(e) { console.error("Self-healing restart forced error", e); }
+                }
+              }, 1200);
+            }
+          } else {
+            console.log("Capture is intentionally stopped or paused. Self-healing bypassed.");
+            updateStatusDisplay();
+          }
+        };
+
+        // Error processing
+        recognition.onerror = (event) => {
+          console.error("Speech recognition driver reports error code:", event.error);
+          
+          if (event.error === 'not-allowed') {
+            shouldBeActive = false;
+            updateStatusDisplay();
+            showNoticeBanner("Microphone permission denied. Select lock icon in address bar to verify rights.", "error");
+          } else if (event.error === 'no-speech') {
+            // Logically silent; wait for onend trigger to reboot self-healing loop
+          } else if (event.error === 'network') {
+            showNoticeBanner("Network connectivity problem detected with the speech processing service.", "warning");
+          } else {
+            showNoticeBanner(`Service status error: ${event.error}`, "warning");
+          }
+        };
+
+        console.log("Speech Recognition module successfully initialized.");
+      } catch (err) {
+        console.error("Speech recognition creation error", err);
+        showNoticeBanner(`Speech module setup failed: ${err.message}`, "error");
+      }
+    }
+
+    // Notice Banner Handler
+    function showNoticeBanner(text, typeClass = "warning") {
+      const banner = document.getElementById("errorAlert");
+      const textSpan = document.getElementById("errorText");
+      
+      banner.className = `alert-banner ${typeClass}`;
+      textSpan.textContent = text;
+      banner.style.display = "flex";
+      
+      // Auto close minor warnings
+      if (typeClass === "warning") {
+        setTimeout(() => {
+          banner.style.display = "none";
+        }, 6000);
+      }
+    }
+
+    // Append Captured speech block to live feed
+    function appendTranscript(text) {
+      const feed = document.getElementById("rawFeed");
+      // Pre-add margin spacing
+      const originalValue = feed.value.trim();
+      feed.value = originalValue ? (originalValue + " " + text) : text;
+      
+      // Force refresh of payload payload
+      updatePayload();
+      
+      // Micro scroll to bottom on new tokens
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    // Dynamic prompt pay loader creation
+    function updatePayload() {
+      const title = document.getElementById("inpTitle").value.trim() || "[Project Alpha Update / Operations Board Placeholder]";
+      const dept = document.getElementById("inpDepartment").value.trim() || "[Operations Board Placeholder]";
+      const date = document.getElementById("inpDate").value.trim() || "2026-05-21";
+      const facilitator = document.getElementById("inpFacilitator").value.trim() || "[Operations Lead / Coordinator]";
+      const format = document.getElementById("inpFormat").value;
+      const rawText = document.getElementById("rawFeed").value.trim() || "... awaiting transcribe content stream ...";
+
+      const promptTemplate = `/meeting_minutes
+
+Generate professional meeting minutes and action items based on the incoming session data. 
+
+[METADATA PARAMS]
+- Meeting Title: ${title}
+- Department/Group: ${dept}
+- Date: ${date}
+- Facilitator: ${facilitator}
+- Format Context: ${format}
+
+[PROMPT PROCESSING DIRECTIVES]
+1. STRUCTURE & TONAL GUARDRAILS: Clean up all grammatical redundancies, verbal stubs, and conversational fillers. Convert raw spoken text into objective, professional, and clear executive-grade corporate/academic prose. 
+2. INTERACTIVE DIALOGUE HANDLING: If Format Context is "Live Interactive Meeting", note that the raw feed contains co-mingled speech from multiple participants. Logically segment topics, agreements, and statements based on contextual patterns.
+3. SOLE DICTATION HANDLING: If Format Context is "Post-Meeting Dictation Summary", treat the text as a singular comprehensive recap delivered from the facilitator's perspective.
+4. COMPLIANCE & OUTPUT FILTERING: Respond ONLY with the final structured meeting minutes, key discussion highlights, and an extracted bulleted list of Action Items (assigning ownership to roles/names where contextually stated). Do not include any introductory text, markdown code blocks, or conversational AI filler.
+
+[RAW MIC DATA FEED STREAM]
+"${rawText}"`;
+
+      document.getElementById("promptPayload").value = promptTemplate;
+    }
+
+    // Control Deck State Updates
+    function updateStatusDisplay() {
+      const dot = document.getElementById("statusDot");
+      const textText = document.getElementById("statusText");
+      const btnStart = document.getElementById("btnStart");
+      const btnPause = document.getElementById("btnPause");
+      const btnResume = document.getElementById("btnResume");
+      const btnStop = document.getElementById("btnStop");
+      const vibeContainer = document.getElementById("vibeContainer");
+      const bars = document.querySelectorAll(".vibe-bar");
+
+      if (shouldBeActive && !isPaused) {
+        // RECORDING STATE
+        dot.className = "status-dot status-active pulse";
+        textText.textContent = "Listening (Live)";
+        vibeContainer.style.opacity = "1";
+        
+        bars.forEach((bar, index) => {
+          // Add pulse classes dynamically
+          bar.classList.add(`pulse-bar-${(index % 4) + 1}`);
+        });
+
+        btnStart.disabled = true;
+        btnPause.disabled = false;
+        btnResume.disabled = true;
+        btnStop.disabled = false;
+      } else if (isPaused) {
+        // PAUSED STATE
+        dot.className = "status-dot status-paused";
+        textText.textContent = "Session Paused";
+        vibeContainer.style.opacity = "0.2";
+        
+        bars.forEach((bar, index) => {
+          bar.className = "vibe-bar"; // Kill animation classes
+        });
+
+        btnStart.disabled = true;
+        btnPause.disabled = true;
+        btnResume.disabled = false;
+        btnStop.disabled = false;
+      } else {
+        // IDLE STATE
+        dot.className = "status-dot status-idle";
+        textText.textContent = "Idle / Offline";
+        vibeContainer.style.opacity = "0";
+        
+        bars.forEach((bar) => {
+          bar.className = "vibe-bar";
+        });
+
+        btnStart.disabled = false;
+        btnPause.disabled = true;
+        btnResume.disabled = true;
+        btnStop.disabled = true;
+      }
+    }
+
+    // Operational Commands
+    function startCapture() {
+      // Clear any notices on startup
+      document.getElementById("errorAlert").style.display = "none";
+
+      if (!recognition) {
+        initSpeechRecognition();
+      }
+      if (!recognition) {
+        showNoticeBanner("Speech recognition engine is unavailable to load in this browser.", "error");
+        return;
+      }
+
+      // Wipes previous feed and triggers initialization variables
+      document.getElementById("rawFeed").value = "";
+      updatePayload();
+
+      shouldBeActive = true;
+      isPaused = false;
+
+      try {
+        recognition.start();
+        console.log("Speech recognition listener successfully started.");
+      } catch (err) {
+        console.warn("Capture start call warning (already active?):", err);
+      }
+      updateStatusDisplay();
+    }
+
+    function pauseSession() {
+      // Hold stream state
+      isPaused = true;
+      if (recognition) {
+        try {
+          recognition.stop();
+        } catch (err) {
+          console.error("Pause stop error:", err);
+        }
+      }
+      updateStatusDisplay();
+    }
+
+    function resumeSession() {
+      isPaused = false;
+      shouldBeActive = true;
+
+      if (!recognition) {
+        initSpeechRecognition();
+      }
+
+      try {
+        recognition.start();
+        console.log("Session audio stream resumed successfully.");
+      } catch (err) {
+        console.warn("Resume session start challenge:", err);
+      }
+      updateStatusDisplay();
+    }
+
+    function stopCapture() {
+      shouldBeActive = false;
+      isPaused = false;
+
+      if (recognition) {
+        try {
+          recognition.stop();
+        } catch (err) {
+          console.error("Stop call challenge:", err);
+        }
+      }
+      updateStatusDisplay();
+    }
+
+    // Copy handlers
+    function setupClipboardControls() {
+      const copyRawBtn = document.getElementById("btnCopyRaw");
+      const copyPayloadBtn = document.getElementById("btnCopyPayload");
+
+      copyRawBtn.addEventListener("click", () => {
+        const rawArea = document.getElementById("rawFeed");
+        const oldLabel = document.getElementById("txtCopyRaw");
+        
+        navigator.clipboard.writeText(rawArea.value).then(() => {
+          copyRawBtn.classList.add("btn-copied");
+          oldLabel.textContent = "Copied Raw Stream!";
+          setTimeout(() => {
+            copyRawBtn.classList.remove("btn-copied");
+            oldLabel.textContent = "Copy Raw Stream";
+          }, 2000);
+        }).catch(err => {
+          console.error("Failed to copy raw text stream:", err);
+        });
+      });
+
+      copyPayloadBtn.addEventListener("click", () => {
+        const payloadArea = document.getElementById("promptPayload");
+        const oldLabel = document.getElementById("txtCopyPayload");
+
+        navigator.clipboard.writeText(payloadArea.value).then(() => {
+          copyPayloadBtn.classList.add("btn-copied");
+          oldLabel.textContent = "Copied Ingestion Payload!";
+          setTimeout(() => {
+            copyPayloadBtn.classList.remove("btn-copied");
+            oldLabel.textContent = "Copy Ingestion Payload";
+          }, 2000);
+        }).catch(err => {
+          console.error("Failed to copy prompt payload:", err);
+        });
+      });
+    }
+
+    // Event listeners
+    document.getElementById("btnStart").addEventListener("click", startCapture);
+    document.getElementById("btnPause").addEventListener("click", pauseSession);
+    document.getElementById("btnResume").addEventListener("click", resumeSession);
+    document.getElementById("btnStop").addEventListener("click", stopCapture);
+
+    // Watch metadata configuration field triggers
+    const triggerFields = ["inpTitle", "inpDepartment", "inpDate", "inpFacilitator", "inpFormat", "rawFeed"];
+    triggerFields.forEach(id => {
+      document.getElementById(id).addEventListener("input", updatePayload);
+      if (id === "inpFormat") {
+        document.getElementById(id).addEventListener("change", updatePayload);
+      }
+    });
+
+    // Initialize action button copying handlers
+    setupClipboardControls();
+
+  </script>
+</body>
+</html>

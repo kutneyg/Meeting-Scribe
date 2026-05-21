@@ -1,0 +1,8 @@
+{
+  "name": "Meeting Scribe",
+  "description": "A self-contained web application for real-time speech-to-text recording, metadata-driven prompt payload generation, and seamless self-healing continuous speech recognition.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
