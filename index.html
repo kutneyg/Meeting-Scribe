@@ -616,21 +616,16 @@
           </div>
 
           <div class="input-group">
-            <label class="input-label" for="inpDepartment">Department / Group</label>
-            <input class="input-field" type="text" id="inpDepartment" placeholder="e.g., Academic Affairs">
-          </div>
-
-          <div class="input-group">
             <label class="input-label" for="inpDate">Meeting Date</label>
             <input class="input-field" type="date" id="inpDate">
           </div>
 
-          <div class="input-group">
-            <label class="input-label" for="inpFacilitator">Chair / Facilitator</label>
-            <input class="input-field" type="text" id="inpFacilitator" placeholder="e.g., Dr. Jane Smith">
+          <div class="input-group" id="divAttendee" style="display: none;">
+            <label class="input-label" for="inpAttendee">Meeting Partner Name</label>
+            <input class="input-field" type="text" id="inpAttendee" placeholder="e.g., Alex Johnson">
           </div>
 
-          <div class="input-group" style="grid-column: span 2;">
+          <div class="input-group">
             <label class="input-label" for="inpFormat">Meeting Format Context</label>
             <select class="input-field" id="inpFormat">
               <option value="Live Interactive Meeting">Live Interactive Meeting (Multiple Co-mingled Speakers)</option>
@@ -652,7 +647,7 @@
           <label class="input-label" for="selWorkflow">Select Target Perplexity Workflow:</label>
           <select class="input-field" id="selWorkflow" style="width: 100%;">
             <option value="Weekly Staff Meeting">Weekly Staff Meeting</option>
-            <option value="1:1 Sync Meeting">1:1 Sync Meeting</option>
+            <option value="1:1 Meeting">1:1 Meeting</option>
           </select>
         </div>
         
@@ -777,11 +772,29 @@
       console.warn("SpeechRecognition API is not supported in this browser.");
     }
 
+    // Toggle fields based on selected workflow template
+    function toggleWorkflowFields() {
+      const workflow = document.getElementById("selWorkflow").value;
+      const divAttendee = document.getElementById("divAttendee");
+      if (divAttendee) {
+        if (workflow === "1:1 Meeting") {
+          divAttendee.style.display = "flex";
+        } else {
+          divAttendee.style.display = "none";
+        }
+      }
+      updatePayload();
+    }
+
     // Default current Date
     document.addEventListener("DOMContentLoaded", () => {
-      // Set to 2026-05-21 as local time is 2026-05-21
-      document.getElementById('inpDate').value = "2026-05-21";
-      updatePayload();
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      document.getElementById('inpDate').value = `${year}-${month}-${day}`;
+      
+      toggleWorkflowFields();
     });
 
     // Initialize the Speech Listener
@@ -885,15 +898,30 @@
 
     // Dynamic prompt pay loader creation
     function updatePayload() {
-      const title = document.getElementById("inpTitle").value.trim() || "[Weekly Higher Education Staff Meeting]";
-      const dept = document.getElementById("inpDepartment").value.trim() || "[Academic Affairs]";
-      const date = document.getElementById("inpDate").value.trim() || "2026-05-21";
-      const facilitator = document.getElementById("inpFacilitator").value.trim() || "[Dr. Jane Smith / Dean of Academics]";
+      const workflow = document.getElementById("selWorkflow").value;
+      const date = document.getElementById("inpDate").value.trim() || new Date().toISOString().split('T')[0];
       const format = document.getElementById("inpFormat").value;
       const rawText = document.getElementById("rawFeed").value.trim() || "... awaiting transcribe content stream ...";
-      const workflow = document.getElementById("selWorkflow").value;
 
-      const prefix = workflow === "1:1 Sync Meeting" ? "/one_on_one\n\n" : "/meeting_minutes\n\n";
+      let prefix = "";
+      let metadataReferences = "";
+      let title = "";
+
+      if (workflow === "1:1 Meeting") {
+        title = document.getElementById("inpTitle").value.trim() || "[1:1 Meeting]";
+        const attendee = document.getElementById("inpAttendee").value.trim() || "[Colleague Name]";
+        prefix = "/one_on_one\n\n";
+        metadataReferences = `- Scheduled Meeting Title/Topic: ${title}
+- Meeting Partner / Colleague: ${attendee}
+- Date: ${date}
+- Style/Format: ${format}`;
+      } else {
+        title = document.getElementById("inpTitle").value.trim() || "[Weekly Higher Education Staff Meeting]";
+        prefix = "/meeting_minutes\n\n";
+        metadataReferences = `- Scheduled Meeting Title/Topic: ${title}
+- Date: ${date}
+- Style/Format: ${format}`;
+      }
 
       const promptTemplate = prefix + `You are a text-cleaning assistant for a weekly Higher Education Staff Meeting. Your only job is to take the live raw transcript or dictation text below and normalize it for a custom AI space.
 
@@ -904,11 +932,7 @@ Rules:
 4. Output the result as clean, sequential paragraphs or simple lists that represent a direct, readable account of the meeting updates.
 
 [Session Metadata Context References]
-- Scheduled Meeting Title/Topic: ${title}
-- Department/Group: ${dept}
-- Date: ${date}
-- Facilitator/Chair: ${facilitator}
-- Style/Format: ${format}
+${metadataReferences}
 
 Raw Text to Clean:
 "${rawText}"`;
@@ -1091,12 +1115,12 @@ Raw Text to Clean:
     document.getElementById("btnStop").addEventListener("click", stopCapture);
 
     // Watch metadata configuration field triggers
-    const triggerFields = ["inpTitle", "inpDepartment", "inpDate", "inpFacilitator", "inpFormat", "rawFeed", "selWorkflow"];
+    const triggerFields = ["inpTitle", "inpAttendee", "inpDate", "inpFormat", "rawFeed", "selWorkflow"];
     triggerFields.forEach(id => {
       const el = document.getElementById(id);
       if (el) {
-        el.addEventListener("input", updatePayload);
-        el.addEventListener("change", updatePayload);
+        el.addEventListener("input", id === "selWorkflow" ? toggleWorkflowFields : updatePayload);
+        el.addEventListener("change", id === "selWorkflow" ? toggleWorkflowFields : updatePayload);
       }
     });
 
